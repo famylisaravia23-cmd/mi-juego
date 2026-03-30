@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Carnaval PRO</title>
+
+<style>
+body {
+    margin:0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(180deg,#1a2a6c,#000);
+    color:white;
+    text-align:center;
+}
+
+.container {
+    max-width:400px;
+    margin:auto;
+    padding:15px;
+}
+
+h1 { font-size:22px; }
+
+input {
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border-radius:10px;
+    border:none;
+}
+
+.btn {
+    width:100%;
+    padding:14px;
+    margin:10px 0;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(45deg,#ff00cc,#3333ff);
+    color:white;
+}
+
+.card {
+    padding:20px;
+    border-radius:15px;
+    background:rgba(255,255,255,0.1);
+}
+
+/* RESPUESTAS */
+.answers button {
+    width:100%;
+    padding:12px;
+    margin:6px 0;
+    border:none;
+    border-radius:10px;
+    background:#ffffff20;
+    color:white;
+}
+
+.correct { background:#00ff88 !important; color:black; }
+.wrong { background:#ff4444 !important; }
+
+/* BARRAS */
+.timer, .progress {
+    height:8px;
+    border-radius:10px;
+    margin:10px 0;
+}
+
+.timer { background:#ffffff30; }
+.progress { background:#ffffff20; }
+
+.bar { background:#00ffcc; height:8px; }
+.prog { background:#ffcc00; height:8px; }
+
+/* INFO */
+.top {
+    display:flex;
+    justify-content:space-between;
+    font-size:14px;
+}
+
+/* VIDAS */
+.hearts {
+    color:red;
+    font-size:18px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🎭 Carnaval Quiz PRO</h1>
+
+<!-- MENU -->
+<div id="menu">
+    <input id="name" placeholder="Ingresa tu nombre">
+    <button class="btn" onclick="start()">🚀 Jugar</button>
+
+    <h3>🏆 Ranking</h3>
+    <div id="ranking"></div>
+</div>
+
+<!-- GAME -->
+<div id="game" style="display:none;">
+    <div class="card">
+        <div class="top">
+            <div>⭐ <span id="score">0</span></div>
+            <div class="hearts" id="lives">❤️❤️❤️</div>
+        </div>
+
+        <div class="timer"><div class="bar" id="bar"></div></div>
+
+        <div id="q"></div>
+        <div class="answers" id="a"></div>
+
+        <div class="progress"><div class="prog" id="prog"></div></div>
+    </div>
+</div>
+
+<!-- FINAL -->
+<div id="end" style="display:none;">
+    <h2 id="res"></h2>
+    <button class="btn" onclick="location.reload()">🔄 Reintentar</button>
+</div>
+
+</div>
+
+<script>
+
+let allQuestions=[
+{q:"¿A quién honra el carnaval?",a:["Pachamama","Virgen del Socavón","Inti"],c:1},
+{q:"¿Año Patrimonio UNESCO?",a:["2000","2008","2012"],c:1},
+{q:"¿Danza principal?",a:["Caporales","Diablada","Saya"],c:1},
+{q:"¿Qué caracteriza al carnaval?",a:["Solo fiesta","Sincretismo cultural","Solo religión"],c:1},
+{q:"¿Participantes?",a:["10 mil","30 mil","5 mil"],c:1},
+{q:"¿Duración entrada?",a:["5h","10h","20h+"],c:2},
+{q:"¿Significado del diablo?",a:["Maldad","Devoción","Guerra"],c:1},
+{q:"¿Qué mezcla cultural?",a:["Europa-Asia","Indígena-Cristiana","Moderna"],c:1},
+{q:"¿Quiénes pedían protección?",a:["Mineros","Soldados","Comerciantes"],c:0},
+{q:"¿Qué simboliza hoy?",a:["Turismo","Devoción y cultura","Fiesta"],c:1}
+];
+
+let questions=[], i=0, score=0, lives=3, timer, t=15, player="";
+
+function start(){
+player=document.getElementById("name").value || "Jugador";
+
+questions = shuffle([...allQuestions]).slice(0,10);
+
+document.getElementById("menu").style.display="none";
+document.getElementById("game").style.display="block";
+
+next();
+}
+
+function shuffle(arr){
+return arr.sort(()=>Math.random()-0.5);
+}
+
+function next(){
+if(i>=questions.length || lives<=0){
+end();
+return;
+}
+
+let q=questions[i];
+document.getElementById("q").textContent=q.q;
+
+let div=document.getElementById("a");
+div.innerHTML="";
+
+q.a.forEach((txt,idx)=>{
+let b=document.createElement("button");
+b.textContent=txt;
+b.onclick=()=>check(b,idx);
+div.appendChild(b);
+});
+
+startTimer();
+updateUI();
+}
+
+function check(btn,idx){
+clearInterval(timer);
+
+let correct=questions[i].c;
+let btns=document.querySelectorAll(".answers button");
+
+btns.forEach((b,j)=>{
+if(j===correct) b.classList.add("correct");
+else b.classList.add("wrong");
+b.disabled=true;
+});
+
+if(idx===correct){
+score++;
+}else{
+lives--;
+}
+
+setTimeout(()=>{ i++; next(); },800);
+}
+
+function startTimer(){
+t=15;
+let bar=document.getElementById("bar");
+
+clearInterval(timer);
+timer=setInterval(()=>{
+t--;
+bar.style.width=(t*6.6)+"%";
+
+if(t<=0){
+clearInterval(timer);
+lives--;
+i++;
+next();
+}
+},1000);
+}
+
+function updateUI(){
+document.getElementById("score").textContent=score;
+document.getElementById("lives").textContent="❤️".repeat(lives);
+document.getElementById("prog").style.width=(i/questions.length)*100+"%";
+}
+
+function end(){
+document.getElementById("game").style.display="none";
+document.getElementById("end").style.display="block";
+
+saveScore();
+
+let level="🟢 Básico";
+if(score>=5) level="🟡 Intermedio";
+if(score>=8) level="🏆 Experto";
+
+document.getElementById("res").textContent=
+player+" | "+score+" pts | "+level;
+}
+
+function saveScore(){
+let rank=JSON.parse(localStorage.getItem("ranking"))||[];
+rank.push({name:player,score:score});
+rank.sort((a,b)=>b.score-a.score);
+rank=rank.slice(0,5);
+localStorage.setItem("ranking",JSON.stringify(rank));
+}
+
+function loadRanking(){
+let rank=JSON.parse(localStorage.getItem("ranking"))||[];
+let div=document.getElementById("ranking");
+div.innerHTML="";
+
+rank.forEach(r=>{
+div.innerHTML += "<div>"+r.name+" - "+r.score+"</div>";
+});
+}
+
+loadRanking();
+
+</script>
+
+</body>
+</html>
